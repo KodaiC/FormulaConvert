@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  bot:
+    container_name: bot
+    build: .
+    volumes:
+      - ./.latexmkrc:/workdir/.latexmkrc
+      - ./texmf.cnf:/usr/local/texlive/2022/texmf.cnf
+      - ./target/TwitterLaTeXBot-1.0-SNAPSHOT-jar-with-dependencies.jar:/workdir/bot.jar
+      - ./tex:/workdir
+    # command: sh -c "java -jar bot.jar"
+
