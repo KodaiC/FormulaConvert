@@ -12,6 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +39,20 @@ public class WebhookHandler implements HttpHandler {
                     if (!"1575333303347204096".equals(event.get("in_reply_to_user_id_str").asText())) return;
                     Relationship relation = twitter.showFriendship(1575333303347204096L, event.get("user").get("id_str").asLong());
                     if (!(relation.isTargetFollowedBySource() && relation.isTargetFollowingSource())) return;
+                    try (Connection connection = DriverManager.getConnection("jdbc:sqlite:tweets.db")) {
+                        connection.setAutoCommit(false);
+                        try (PreparedStatement statement = connection.prepareStatement("insert into tweets(tweet_id, user_id, tweet) values(?, ?, ?)")) {
+                            statement.setString(1, event.get("id_str").asText());
+                            statement.setString(2, event.get("user").get("id_str").asText());
+                            statement.setString(3, event.get("text").asText());
+
+                            statement.execute();
+                        }
+                        connection.commit();
+                    }
+                    catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
 //                    System.out.println(Generater.generatePDF(Parser.parse(event.get("text").asText()), true));
                     String uuid = Generater.generatePDF(Parser.parse(event.get("text").asText()), true);
                     StatusUpdate update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換しました！");

@@ -1,0 +1,6 @@
+.git/
+.idea/
+account-activity-dashboard/
+src/
+target/
+!target/TwitterLaTeXBot-1.0-SNAPSHOT-jar-with-dependencies.jar

@@ -10,6 +10,7 @@ services:
       - ./tex:/workdir
       - ./settings.properties:/workdir/settings.properties
       - ./twitter4j.properties:/workdir/twitter4j.properties
+      - ./tweets.db:/workdir/tweets.db
     ports: 
       - "8080:8080"
     command: sh -c "java -jar bot.jar"

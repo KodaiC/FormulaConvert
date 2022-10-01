@@ -43,3 +43,5 @@ tex/
 settings.properties
 key.json
 twitter4j.properties
+account-activity-dashboard/
+tweets.db
