@@ -36,15 +36,24 @@ public class WebhookHandler implements HttpHandler {
                 JsonNode json = new ObjectMapper().readTree(body);
                 if (json.has("tweet_create_events")) {
                     JsonNode event = json.get("tweet_create_events").get(0);
-                    if (!"1575333303347204096".equals(event.get("in_reply_to_user_id_str").asText())) return;
+                    if (!"1575333303347204096".equals(event.get("in_reply_to_user_id_str").asText())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
                     Relationship relation = twitter.showFriendship(1575333303347204096L, event.get("user").get("id_str").asLong());
-                    if (!(relation.isTargetFollowedBySource() && relation.isTargetFollowingSource())) return;
+                    if (!(relation.isTargetFollowedBySource() && relation.isTargetFollowingSource())) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+//                    System.out.println(Generater.generatePDF(Parser.parse(event.get("text").asText()), true));
+                    String uuid = Generater.generatePDF(Parser.parse(event.get("text").asText()), true);
                     try (Connection connection = DriverManager.getConnection("jdbc:sqlite:tweets.db")) {
                         connection.setAutoCommit(false);
-                        try (PreparedStatement statement = connection.prepareStatement("insert into tweets(tweet_id, user_id, tweet) values(?, ?, ?)")) {
+                        try (PreparedStatement statement = connection.prepareStatement("insert into tweets(tweet_id, user_id, tweet, uuid) values(?, ?, ?, ?)")) {
                             statement.setString(1, event.get("id_str").asText());
                             statement.setString(2, event.get("user").get("id_str").asText());
                             statement.setString(3, event.get("text").asText());
+                            statement.setString(4, uuid);
 
                             statement.execute();
                         }
@@ -53,8 +62,6 @@ public class WebhookHandler implements HttpHandler {
                     catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
-//                    System.out.println(Generater.generatePDF(Parser.parse(event.get("text").asText()), true));
-                    String uuid = Generater.generatePDF(Parser.parse(event.get("text").asText()), true);
                     StatusUpdate update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換しました！");
                     update.setMedia(new File(uuid + "-image-1.png"));
                     update.setInReplyToStatusId(event.get("id_str").asLong());
@@ -78,10 +85,14 @@ public class WebhookHandler implements HttpHandler {
                 SecretKeySpec secretKeySpec = new SecretKeySpec(SECRET.getBytes(), "HmacSHA256");
                 mac.init(secretKeySpec);
                 Map<String, String> query = queryToMap(exchange.getRequestURI().getQuery());
+                if (query == null || !query.containsKey("crc_token")) {
+                    exchange.sendResponseHeaders(204, -1);
+                    return;
+                }
                 hmacSha256 = mac.doFinal(query.get("crc_token").getBytes());
 
                 byte[] responseBytes = ("{\"response_token\": \"sha256=" + Base64.getEncoder().encodeToString(hmacSha256) + "\"}").getBytes();
-                System.out.println(new String(responseBytes));
+                // System.out.println(new String(responseBytes));
                 try (OutputStream output = exchange.getResponseBody()) {
                     exchange.getResponseHeaders().set("Content-Type", "application/json");
                     exchange.sendResponseHeaders(200, responseBytes.length);
