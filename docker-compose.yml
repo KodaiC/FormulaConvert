@@ -8,5 +8,9 @@ services:
       - ./texmf.cnf:/usr/local/texlive/2022/texmf.cnf
       - ./target/TwitterLaTeXBot-1.0-SNAPSHOT-jar-with-dependencies.jar:/workdir/bot.jar
       - ./tex:/workdir
-    # command: sh -c "java -jar bot.jar"
+      - ./settings.properties:/workdir/settings.properties
+      - ./twitter4j.properties:/workdir/twitter4j.properties
+    ports: 
+      - "8080:8080"
+    command: sh -c "java -jar bot.jar"
 

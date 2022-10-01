@@ -18,6 +18,7 @@ public class Generater {
                     \\end{equation*}
                     \\end{document}
                     """;
+    public static boolean DO_PRINT_STDOUT = false;
 
     public static String generatePDF(String tex, boolean doRemove) {
         String uuid = UUID.randomUUID().toString();
@@ -28,11 +29,24 @@ public class Generater {
             Process p1 = new ProcessBuilder(new String[]{"sh", "-c",
                     "latexmk " + uuid + ".tex" +
                     " && pdfcrop --margins \"4 4 4 4\" " + uuid + ".pdf" +
-                    " && pdftoppm -r 1000 -png " + uuid + "-crop.pdf " + uuid + "-image.png"
+                    " && pdftoppm -r 1000 -png " + uuid + "-crop.pdf " + uuid + "-image"
             }).start();
             p1.waitFor();
             result = p1.exitValue();
-            System.out.println(result);
+            if (DO_PRINT_STDOUT) {
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(p1.getInputStream()))) {
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                }
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(p1.getErrorStream()))) {
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                }
+            }
             p1.destroy();
 
             if (doRemove) {
