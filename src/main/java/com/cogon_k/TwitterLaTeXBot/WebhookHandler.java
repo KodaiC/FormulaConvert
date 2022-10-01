@@ -60,6 +60,12 @@ public class WebhookHandler implements HttpHandler {
                     update.setInReplyToStatusId(event.get("id_str").asLong());
                     Status status = twitter.updateStatus(update);
                 }
+                else if (json.has("follow_events")) {
+                    JsonNode event = json.get("follow_events").get(0);
+                    if (!event.get("type").asText().equals("follow")) return;
+                    if (!event.get("target").get("id").asText().equals("1575333303347204096")) return;
+                    twitter.createFriendship(event.get("source").get("id").asLong());
+                }
             }
             catch (TwitterException e) {
                 throw new RuntimeException(e);
