@@ -62,10 +62,16 @@ public class WebhookHandler implements HttpHandler {
                     catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
-                    StatusUpdate update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換しました！");
-                    update.setMedia(new File(uuid + "-image-1.png"));
+
+                    StatusUpdate update = null;
+                    if (uuid.isBlank()) update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換に失敗しました\n数式が間違っている可能性があります");
+                    else {
+                        update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換しました！");
+                        update.setMedia(new File(uuid + "-image-1.png"));
+                    }
                     update.setInReplyToStatusId(event.get("id_str").asLong());
-                    Status status = twitter.updateStatus(update);
+                    twitter.updateStatus(update);
+                    twitter.createFavorite(event.get("id_str").asLong());
                 }
                 else if (json.has("follow_events")) {
                     JsonNode event = json.get("follow_events").get(0);
