@@ -54,7 +54,7 @@ public class TwitterLaTeXBot {
             server.stop(0);
         }
         catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 }

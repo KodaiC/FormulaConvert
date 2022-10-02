@@ -29,7 +29,7 @@ public class WebhookHandler implements HttpHandler {
     public static Twitter twitter = null;
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange) {
         String method = exchange.getRequestMethod();
 
         if ("POST".equals(method)) {
@@ -48,8 +48,12 @@ public class WebhookHandler implements HttpHandler {
                         exchange.sendResponseHeaders(204, -1);
                         return;
                     }
-//                    System.out.println(Generater.generatePDF(Parser.parse(event.get("text").asText()), true));
-                    String uuid = Generater.generatePDF(Parser.parse(twitter.showStatus(event.get("id_str").asLong()).getText()), true);
+                    String tex = Parser.parse(twitter.showStatus(event.get("id_str").asLong()).getText());
+                    if (tex.isBlank()) {
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+                    String uuid = Generater.generatePDF(tex, true);
                     try (Connection connection = DriverManager.getConnection("jdbc:sqlite:tweets.db")) {
                         connection.setAutoCommit(false);
                         try (PreparedStatement statement = connection.prepareStatement("insert into tweets(tweet_id, user_id, tweet, uuid) values(?, ?, ?, ?)")) {
@@ -63,7 +67,7 @@ public class WebhookHandler implements HttpHandler {
                         connection.commit();
                     }
                     catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        e.printStackTrace();
                     }
 
                     StatusUpdate update = null;
@@ -83,8 +87,8 @@ public class WebhookHandler implements HttpHandler {
                     twitter.createFriendship(event.get("source").get("id").asLong());
                 }
             }
-            catch (TwitterException e) {
-                throw new RuntimeException(e);
+            catch (TwitterException | IOException e) {
+                e.printStackTrace();
             }
         }
         else if (IS_CRC_CHECK && "GET".equals(method)) {
@@ -114,7 +118,12 @@ public class WebhookHandler implements HttpHandler {
             }
         }
 
-        exchange.sendResponseHeaders(204, -1);
+        try {
+            exchange.sendResponseHeaders(204, -1);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Map<String, String> queryToMap(String query) {

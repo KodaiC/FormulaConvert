@@ -14,6 +14,6 @@ public class Parser {
             result += s + "\\\\\n";
         }
 
-        return result.substring(0, result.length() - 3);
+        return result.length() > 2 ? result.substring(0, result.length() - 3) : "";
     }
 }
