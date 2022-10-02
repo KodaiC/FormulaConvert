@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.apache.commons.text.StringEscapeUtils;
-import org.sqlite.util.StringUtils;
-import twitter4j.*;
+import twitter4j.Relationship;
+import twitter4j.StatusUpdate;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -48,7 +49,7 @@ public class WebhookHandler implements HttpHandler {
                         return;
                     }
 //                    System.out.println(Generater.generatePDF(Parser.parse(event.get("text").asText()), true));
-                    String uuid = Generater.generatePDF(Parser.parse(StringEscapeUtils.unescapeHtml4(event.get("text").asText())), true);
+                    String uuid = Generater.generatePDF(Parser.parse(twitter.showStatus(event.get("id_str").asLong()).getText()), true);
                     try (Connection connection = DriverManager.getConnection("jdbc:sqlite:tweets.db")) {
                         connection.setAutoCommit(false);
                         try (PreparedStatement statement = connection.prepareStatement("insert into tweets(tweet_id, user_id, tweet, uuid) values(?, ?, ?, ?)")) {

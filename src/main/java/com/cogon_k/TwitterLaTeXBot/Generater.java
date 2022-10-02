@@ -27,12 +27,13 @@ public class Generater {
 
         try {
             Process p1 = new ProcessBuilder(new String[]{"sh", "-c",
-                    "latexmk " + uuid + ".tex" +
+                    "timeout 3 latexmk " + uuid + ".tex" +
                     " && pdfcrop --margins \"4 4 4 4\" " + uuid + ".pdf" +
                     " && pdftoppm -r 1000 -png " + uuid + "-crop.pdf " + uuid + "-image"
             }).start();
             p1.waitFor();
             result = p1.exitValue();
+
             if (DO_PRINT_STDOUT) {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(p1.getInputStream()))) {
                     String line;
