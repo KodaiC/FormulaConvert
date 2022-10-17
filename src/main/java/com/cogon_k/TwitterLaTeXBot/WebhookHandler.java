@@ -27,6 +27,7 @@ public class WebhookHandler implements HttpHandler {
     public static String SECRET = "";
     public static boolean IS_CRC_CHECK = false;
     public static Twitter twitter = null;
+    public static boolean DO_PRINT_BODY = false;
 
     @Override
     public void handle(HttpExchange exchange) {
@@ -35,11 +36,20 @@ public class WebhookHandler implements HttpHandler {
         if ("POST".equals(method)) {
             try (InputStream input = exchange.getRequestBody()) {
                 String body = new String(input.readAllBytes());
-//                System.out.println(body);
+                if (DO_PRINT_BODY) System.out.println(body);
                 JsonNode json = new ObjectMapper().readTree(body);
                 if (json.has("tweet_create_events")) {
                     JsonNode event = json.get("tweet_create_events").get(0);
-                    if (!"1575333303347204096".equals(event.get("in_reply_to_user_id_str").asText())) {
+                    boolean isMentioned = false;
+                    if (event.has("entities") && event.get("entities").has("user_mentions")) {
+                        JsonNode mentions = event.get("entities").get("user_mentions");
+                        for (int i = 0; i < mentions.size(); i++) {
+                            if (mentions.get(i).has("id_str") &&
+                                    "1575333303347204096".equals(mentions.get(i).get("id_str").asText()))
+                                isMentioned = true;
+                        }
+                    }
+                    if (!isMentioned) {
                         exchange.sendResponseHeaders(204, -1);
                         return;
                     }
@@ -71,7 +81,8 @@ public class WebhookHandler implements HttpHandler {
                     }
 
                     StatusUpdate update = null;
-                    if (uuid.isBlank()) update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換に失敗しました\n数式が間違っている可能性があります");
+                    if (uuid.isBlank())
+                        update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換に失敗しました\n数式が間違っている可能性があります");
                     else {
                         update = new StatusUpdate("@" + event.get("user").get("screen_name").asText() + " \n変換しました！");
                         update.setMedia(new File(uuid + "-image-1.png"));
@@ -127,7 +138,7 @@ public class WebhookHandler implements HttpHandler {
     }
 
     public Map<String, String> queryToMap(String query) {
-        if(query == null) {
+        if (query == null) {
             return null;
         }
 

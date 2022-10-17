@@ -18,19 +18,21 @@ public class TwitterLaTeXBot {
 
         Properties prop = new Properties();
         String HOSTNAME = "";
-        try(FileInputStream reader = new FileInputStream("settings.properties")) {
+        try (FileInputStream reader = new FileInputStream("settings.properties")) {
             prop.load(reader);
             WebhookHandler.SECRET = prop.getProperty("secret");
             WebhookHandler.IS_CRC_CHECK = Boolean.parseBoolean(prop.getProperty("is_crc_check"));
             Generater.DO_PRINT_STDOUT = Boolean.parseBoolean(prop.getProperty("do_print_stdout"));
+            WebhookHandler.DO_PRINT_BODY = Boolean.parseBoolean(prop.getProperty("do_print_body"));
             HOSTNAME = prop.getProperty("hostname");
         }
         catch (FileNotFoundException e) {
-            try(FileOutputStream writer = new FileOutputStream("settings.properties")) {
+            try (FileOutputStream writer = new FileOutputStream("settings.properties")) {
                 prop.setProperty("secret", "");
                 prop.setProperty("is_crc_check", "false");
                 prop.setProperty("hostname", "");
-                prop.setProperty("do_print_stdout", "");
+                prop.setProperty("do_print_stdout", "false");
+                prop.setProperty("do_print_body", "false");
                 prop.store(writer, null);
                 writer.flush();
             }

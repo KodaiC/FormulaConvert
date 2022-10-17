@@ -8,6 +8,8 @@ public class Generater {
             """
                     \\documentclass[uplatex]{jsarticle}
                     \\usepackage{amsmath}
+                    \\usepackage{amssymb}
+                    \\usepackage{amsfonts}
                     \\pagestyle{empty}
                                 
                     \\begin{document}
@@ -28,8 +30,8 @@ public class Generater {
         try {
             Process p1 = new ProcessBuilder(new String[]{"sh", "-c",
                     "timeout 3 latexmk " + uuid + ".tex" +
-                    " && pdfcrop --margins \"4 4 4 4\" " + uuid + ".pdf" +
-                    " && pdftoppm -r 1000 -png " + uuid + "-crop.pdf " + uuid + "-image"
+                            " && pdfcrop --margins \"4 4 4 4\" " + uuid + ".pdf" +
+                            " && pdftoppm -r 1000 -png " + uuid + "-crop.pdf " + uuid + "-image"
             }).start();
             p1.waitFor();
             result = p1.exitValue();
@@ -68,7 +70,8 @@ public class Generater {
             for (Object o : objs) {
                 pw.println(o);
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
