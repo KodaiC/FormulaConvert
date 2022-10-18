@@ -13,5 +13,5 @@ services:
       - ./tweets.db:/workdir/tweets.db
     ports:
       - "8080:8080"
-    command: sh -c "java -jar bot.jar"
+    command: sh -c "java -jar -Dfile.encoding=UTF-8 bot.jar"
 
