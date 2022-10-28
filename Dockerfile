@@ -10,4 +10,6 @@ RUN wget https://apt.corretto.aws/corretto.key \
 RUN apt update \
     && apt install -y texlive-extra-utils java-17-amazon-corretto-jdk poppler-utils
 
+RUN tlmgr install mhchem
+
 EXPOSE 8080

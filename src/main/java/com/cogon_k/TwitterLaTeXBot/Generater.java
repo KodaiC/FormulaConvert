@@ -10,6 +10,7 @@ public class Generater {
                     \\usepackage{amsmath}
                     \\usepackage{amssymb}
                     \\usepackage{amsfonts}
+                    \\usepackage[version=4]{mhchem}
                     \\pagestyle{empty}
                                 
                     \\begin{document}
