@@ -45,7 +45,8 @@ public class WebhookHandler implements HttpHandler {
                         JsonNode mentions = event.get("entities").get("user_mentions");
                         for (int i = 0; i < mentions.size(); i++) {
                             if (mentions.get(i).has("id_str") &&
-                                    "1575333303347204096".equals(mentions.get(i).get("id_str").asText()))
+                                    "1575333303347204096".equals(mentions.get(i).get("id_str").asText()) &&
+                                    !event.has("retweeted_status"))
                                 isMentioned = true;
                         }
                     }
